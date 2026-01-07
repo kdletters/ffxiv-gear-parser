@@ -1,0 +1,21 @@
+[package]
+name = "ffxiv-share-parser"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "A Rust implementation of FFXIV gearset share string parser"
+license = "MIT"
+
+[dependencies]
+num-bigint = "0.4"
+num-traits = "0.2"
+
+[dev-dependencies]
+
+[[bin]]
+name = "ffxiv-share-parser"
+path = "src/main.rs"
+
+[lib]
+name = "ffxiv_share_parser"
+path = "src/lib.rs"
