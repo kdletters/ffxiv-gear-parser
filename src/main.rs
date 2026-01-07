@@ -1,5 +1,5 @@
 use std::env;
-use ffxiv_share_parser::{parse_gearset, ParseResult};
+use ffxiv_gear_parser::{parse_gearset, ParseResult};
 
 fn print_usage() {
     println!("Usage: ffxiv-share-parser <share_string>");

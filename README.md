@@ -11,10 +11,17 @@ This library can parse base62-encoded gearset share strings used by FFXIV gearin
 - Custom stat configurations for crafted gear
 - Sync level information for level-synced content
 
+## Run
+
+```commandline
+cargo run -- 45WGpd4LvOX9v3JkHJrIG8hUEncvc0s0we
+```
+
 ## Installation
 
 Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ffxiv-share-parser = { path = "." }
+ffxiv-gear-parser = { path = "." }
+```

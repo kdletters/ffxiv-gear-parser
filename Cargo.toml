@@ -1,5 +1,5 @@
 [package]
-name = "ffxiv-share-parser"
+name = "ffxiv-gear-parser"
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Name <your.email@example.com>"]
@@ -13,9 +13,9 @@ num-traits = "0.2"
 [dev-dependencies]
 
 [[bin]]
-name = "ffxiv-share-parser"
+name = "ffxiv-gear-parser"
 path = "src/main.rs"
 
 [lib]
-name = "ffxiv_share_parser"
+name = "ffxiv_gear_parser"
 path = "src/lib.rs"
