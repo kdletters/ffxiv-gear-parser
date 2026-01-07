@@ -1,9 +1,10 @@
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 
 pub type GearId = i32;
 pub type MateriaGrade = u8;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Job {
     PLD, WAR, DRK, GNB,
     WHM, SCH, AST, SGE,
@@ -14,7 +15,7 @@ pub enum Job {
     MIN, BTN, FSH,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Stat {
     CRT, DET, DHT, SKS, SPS, TEN, PIE,
     CMS, CRL, CP,
@@ -28,14 +29,14 @@ pub type Stats = HashMap<Stat, i32>;
 pub type Materia = Option<(Stat, MateriaGrade)>;
 pub type GearsetMaterias = Vec<Materia>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GearsetGear {
     pub id: GearId,
     pub materias: GearsetMaterias,
     pub custom_stats: Option<Stats>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Gearset {
     pub job: Job,
     pub job_level: JobLevel,
@@ -43,7 +44,7 @@ pub struct Gearset {
     pub gears: Vec<GearsetGear>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ParseResult {
     Gearset(Gearset),
     Shb,
@@ -111,7 +112,7 @@ pub const SPECIAL_GEAR_DECODE: [GearId; 9] = [
     17726,  // Spearfishing Gig
 ];
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GearType {
     Normal(u8),  // 0-5 with materia count
     Special,     // 6

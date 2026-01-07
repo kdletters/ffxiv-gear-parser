@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFXIV Share Parser - WASM Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .result pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .error {
+            background: #fee;
+            border-left: 4px solid #f44;
+            padding: 15px;
+            border-radius: 4px;
+            color: #c33;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .loading {
+            color: #667eea;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .example {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .example code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 FFXIV Share Parser</h1>
+        <p class="subtitle">解析最终幻想14装备分享字符串 (WebAssembly)</p>
+
+        <div class="input-group">
+            <label for="shareString">输入分享字符串:</label>
+            <input 
+                type="text" 
+                id="shareString" 
+                placeholder="粘贴你的装备分享字符串..."
+                value="45WGpd4LvOX9v3JkHJrIG8hUEncvc0s0we"
+            >
+            <div class="example">
+                示例: <code>45WGpd4LvOX9v3JkHJrIG8hUEncvc0s0we</code>
+            </div>
+        </div>
+
+        <button id="parseBtn" onclick="parseGearset()">🔍 解析装备</button>
+
+        <div class="loading" id="loading">⏳ 加载中...</div>
+        <div class="error" id="error"></div>
+        <div class="result" id="result">
+            <h2>✨ 解析结果:</h2>
+            <pre id="output"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        let wasmReady = false;
+        let parse_gearset_wasm = null;
+
+        async function initWasm() {
+            const loading = document.getElementById('loading');
+            loading.classList.add('show');
+
+            try {
+                // 动态导入，提供更好的错误信息
+                const module = await import('./pkg/ffxiv_gear_parser.js');
+                await module.default();
+                parse_gearset_wasm = module.parse_gearset_wasm;
+                wasmReady = true;
+                loading.classList.remove('show');
+                console.log('✅ WASM initialized successfully');
+            } catch (err) {
+                loading.classList.remove('show');
+                let errorMessage = 'WASM初始化失败: ';
+
+                if (err.message.includes('Failed to fetch')) {
+                    errorMessage += '无法加载WASM文件。请确保：\n' +
+                                  '1. 已运行 wasm-pack build --target web\n' +
+                                  '2. pkg/ 目录存在\n' +
+                                  '3. 使用HTTP服务器（不是file://协议）';
+                } else {
+                    errorMessage += err.message;
+                }
+
+                showError(errorMessage);
+                console.error('Failed to initialize WASM:', err);
+                console.error('请检查：');
+                console.error('1. 是否运行了: wasm-pack build --target web');
+                console.error('2. pkg/ffxiv_gear_parser.js 文件是否存在');
+                console.error('3. 是否使用HTTP服务器访问（例如: python3 -m http.server）');
+            }
+        }
+
+        window.parseGearset = function() {
+            if (!wasmReady || !parse_gearset_wasm) {
+                showError('WASM还未准备好，请稍候或检查控制台错误信息...');
+                return;
+            }
+
+            const input = document.getElementById('shareString').value.trim();
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            const output = document.getElementById('output');
+
+            // Hide previous results
+            resultDiv.classList.remove('show');
+            errorDiv.classList.remove('show');
+
+            if (!input) {
+                showError('请输入分享字符串');
+                return;
+            }
+
+            try {
+                const result = parse_gearset_wasm(input);
+                output.textContent = JSON.stringify(result, null, 2);
+                resultDiv.classList.add('show');
+            } catch (err) {
+                showError('解析错误: ' + err);
+                console.error('Parse error:', err);
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.style.whiteSpace = 'pre-wrap';
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.classList.add('show');
+        }
+
+        // Initialize WASM on page load
+        initWasm();
+
+        // Allow Enter key to trigger parse
+        document.getElementById('shareString').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                parseGearset();
+            }
+        });
+    </script>
+</body>
+</html>
